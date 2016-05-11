@@ -22,11 +22,11 @@
 ---
                   * what is systems programming
 ---
-                  * what is Rust
+                  * how Rust and nix make systems programming easier
 ---
-                  * how Rust can make systems programming easier
+                  * how you can get started
 ---
-                  * some ideas on how *you* could get started
+                  * how you can help!
 
 --##############################################################################
 --newpage rc
@@ -64,7 +64,7 @@
 
 --huge    I  built  a  basic  shell ( like  bash)
 
---huge    from scratch
+--huge    from  scratch
 
 --##############################################################################
 --newpage lsaddr
@@ -82,31 +82,50 @@ $ ./lsaddr
 
 
 --sethugefont smblock
---huge    Interprocess communication
+--huge    interprocess communication
 
 --huge    benchmarks
 
 
 --##############################################################################
+--newpage containy-thing
+--beginshelloutput
+$ ./containy-thing --help
+containy-thing 
+
+USAGE:
+        containy-thing [OPTIONS] <ROOTFS> [--] [ARGS]
+
+OPTIONS:
+    -h, --help                                Prints help information
+    -m, --mount <container-dir> <host-dir>    Mount <host-dir> at <container-dir>
+    -V, --version                             Prints version information
+
+ARGS:
+    ROOTFS     Path to the extracted rootfs
+    COMMAND    Command to run
+    ARG...     Arguments for COMMAND
+--endshelloutput
+
+
+--##############################################################################
 --newpage sysprog
-
-
 --sethugefont smblock
 --huge    what  is  systems  programming ?
 
 --##############################################################################
 --newpage kernel
-
-
 --sethugefont smblock
 --huge    the  kernel
 
+
+
 --##############################################################################
 --newpage syscalls
-
-
 --sethugefont smblock
---huge    system  calls :  the  kernel' s  API
+--huge    system  calls :
+
+--huge        the  kernel' s  API
 
 --##############################################################################
 --newpage syscall-ex
@@ -178,7 +197,7 @@ $ ./lsaddr
 
 
 --##############################################################################
---newpage layer-dia
+--newpage dia
 --## TODO FIX
 
 --beginoutput
@@ -240,191 +259,77 @@ $ ./lsaddr
 
 
 --##############################################################################
---newpage rust
+--newpage nix
 
 --sethugefont smblock
---huge      what  is  Rust ?
+--huge      what  is  nix ?
+
+
 
 --##############################################################################
---newpage c-fork
----
-
-
---beginoutput
-#include <signal.h>
-#include <unistd.h>
-
-int main(void) {
-    pid_t child = fork();
-    if (child) {  // in parent
-        sleep(5);
-        kill(child, SIGKILL);
-    } else {  // in child
-        for (;;);  // loop until killed
-    }
-
-    return 0;
-}
---endoutput
-
---##############################################################################
---newpage c-fork-example-compiles-no-errors
+--newpage nix
 --sethugefont smblock
---huge     it    compiles...
+--huge    a  *very*  thin  wrapper
 
-
---beginshelloutput
-$ cc -Wall -Wextra -Werror fork.c
-$
---endshelloutput
-
-
----
---huge        ... with no errors or warnings
+--huge    to  make libc  more  Rusty
 
 --##############################################################################
---newpage c-fork-bad
+--newpage dia
 
+--beginoutput
+--center |       YOUR CODE         |
+--center +-------------------------+
+--center |       standard          |
+--center |        library          |
+--center +-------------------------+
+--center |          libc           |
+--center +-------------------------+
+--center |       THE KERNEL        |
+--endoutput
+
+--##############################################################################
+--newpage dia-nix
+
+--beginoutput
+--center |       YOUR CODE         |
+--center |                         |
+--center |                         |
+--center |                         |
+--center +-------------------------+
+--center |        nix+libc         |
+--center +-------------------------+
+--center |       THE KERNEL        |
+--endoutput
+
+
+--##############################################################################
+--newpage dia-nix
+
+--beginoutput
+--center |       YOUR CODE         |
+--center +           +-------------+
+--center |           |  standard   |
+--center |           |   library   |
+--center +-----------+-------------+
+--center |        nix+libc         |
+--center +-------------------------+
+--center |       THE KERNEL        |
+--endoutput
+
+--##############################################################################
+--newpage sysprog
 --sethugefont smblock
---huge   but  it's  *really*  not  correct!
+--huge    what  does  nix  do ?
 
 
 --##############################################################################
---newpage fork-ret
-
---sethugefont wideterm
---huge     from   POSIX  spec  for  fork
-
-
-        Otherwise, -1 shall be returned to the parent process,
-        no child process shall be created, and errno shall be
-        set to indicate the error.
-
-
---##############################################################################
---newpage kill-arg
-
---sethugefont wideterm
---huge     from   POSIX  spec  for  kill
-
-
-        If pid is -1, sig shall be sent to all processes
-        [...] for which the process has permission to send
-        that signal.
-
-
---##############################################################################
---newpage all-procs
+--newpage sysprog
 --sethugefont smblock
-
-
---huge      ALL  PROCESSES
-
---##############################################################################
---newpage c-fork
-
-
---beginoutput
-#include <signal.h>
-#include <unistd.h>
-
-int main(void) {
-    pid_t child = fork();
-    if (child) {  // in parent
-        sleep(5);
-        kill(child, SIGKILL);
-    } else {  // in child
-        for (;;);  // loop until killed
-    }
-
-    return 0;
-}
---endoutput
-
---##############################################################################
---newpage
---sethugefont smblock
-
---huge    what would  it look like
-
---huge    in Rust ?
-
-
---##############################################################################
---newpage rust-fork
---beginoutput
-extern crate nix;
-
-use nix::sys::signal::*;
-use nix::unistd::*;
-
-fn main() {
-    match fork().unwrap() {
-        ForkResult::Parent { child } => {
-            sleep(5);
-            kill(child, SIGKILL).unwrap();
-        }
-        ForkResult::Child => {
-            loop {}  // until killed
-        }
-    }
-}
---endoutput
---##############################################################################
---newpage c-fork
-
-
---beginoutput
-#include <signal.h>
-#include <unistd.h>
-
-int main(void) {
-    pid_t child = fork();
-    if (child) {  // in parent
-        sleep(5);
-        kill(child, SIGKILL);
-    } else {  // in child
-        for (;;);  // loop until killed
-    }
-
-    return 0;
-}
---endoutput
-
---##############################################################################
---newpage forkresult
-
-
-
---beginoutput
-pub enum ForkResult {
-    Parent {
-        child: pid_t
-    },
-    Child
-}
---endoutput
-
-
---##############################################################################
---newpage pattern
-
---beginoutput
-match fork_result {
-    ForkResult::Parent { child } => {
-        // stuff to do if we're in the parent
-    }
-    ForkResult::Child => {
-        // stuff do do if we're in the child
-    }
-}
---endoutput
+--huge    errors  via  Result
+--huge    instead  of  errno
 
 --##############################################################################
 --newpage result
-
-
-
 --beginoutput
 #[must_use]
 pub enum Result<T, E> {
@@ -433,62 +338,265 @@ pub enum Result<T, E> {
 }
 --endoutput
 
---##############################################################################
---newpage match-full
 
+--##############################################################################
+--newpage
+--sethugefont smblock
+--huge    this  is  really  great!
+
+
+--##############################################################################
+--newpage sysprog
+--sethugefont smblock
+--huge    return  complex  types  instead  of
+
+--huge    initializing  by  pointer
+
+--##############################################################################
+--newpage sysprog
 --beginoutput
-match fork() {
-    Ok(ForkResult::Parent { child }) => {
-        // stuff to do if we're in the parent
-    }
-    Ok(ForkResult::Child) => {
-        // stuff do do if we're in the child
-    }
-    Err(errno) => {
-        // stuff to do if there was an error
-    }
+int pipe_fds[2];
+if (pipe(pipe_fds)) {
+    return -1;
 }
 --endoutput
 
+
 --##############################################################################
---newpage unwrap
+--newpage sysprog
+--beginoutput
+let (rd, wr) = try!(pipe());
+--endoutput
 
+
+--##############################################################################
+--newpage sysprog
 --sethugefont smblock
---huge    result.unwrap( )
----
+--huge    flag  arguments  as  bitflags
 
---huge    exit  if  there  was  an  error
+
+--##############################################################################
+--newpage sysprog
+--beginoutput
+// C
+#define O_RDONLY 0
+#define O_WRONLY 1
+#define O_RDWR   2
+// ...
+int open(const char *pathname, int flags);
+int open(const char *pathname, int flags, mode_t mode);
+---
+// Rust
+bitflags!(
+    flags OFlag: c_int {
+        const O_RDONLY    = libc::O_RDONLY,
+        const O_WRONLY    = libc::O_WRONLY,
+        const O_RDWR      = libc::O_RDWR,
+        // ...
+    }
+);
+pub fn open<P: ?Sized + NixPath>(path: &P,
+                                 oflag: OFlag,
+                                 mode: Mode) -> Result<RawFd> { ... }
+--endoutput
+
+
+--##############################################################################
+--newpage sysprog
+--sethugefont smblock
+--huge    logical  enums  are  actual  enums
+
+--##############################################################################
+--newpage sysprog
+--sethugefont smblock
+--beginoutput
+// C
+#define SIGHUP  1
+#define SIGINT  2
+#define SIGQUIT 3
+// ...
+int kill(pid_t pid, int sig);
+
+---
+// Rust
+pub enum Signal {
+    SIGHUP = libc::SIGHUP,
+    SIGINT = libc::SIGINT,
+    SIGQUIT = libc::SIGQUIT,
+    // ...
+}
+
+pub fn kill(pid: libc::pid_t, signal: Signal) -> Result<()> { ... }
+--endoutput
+
+--##############################################################################
+--newpage sysprog
+--sethugefont smblock
+--huge    Option< _ >  instead  of
+
+--huge    sentinel  values
+
+--##############################################################################
+--newpage sysprog
+--beginoutput
+// C
+int chown(const char *pathname, uid_t owner, gid_t group);
+// man 2 chown
+If the owner or group is specified as -1, then that ID is not changed.
+
+---
+// Rust
+pub fn chown<P: ?Sized + NixPath>(path: &P,
+                                  owner: Option<uid_t>,
+                                  group: Option<gid_t>) -> Result<()>
+    { ... }
+--endoutput
+
+--##############################################################################
+--newpage sysprog
+--sethugefont smblock
+--huge    references  instead  of  pointers
+
+--##############################################################################
+--newpage sysprog
+// C
+int bind(int sockfd, const struct sockaddr *addr,
+         socklen_t addrlen);
+---
+// Rust
+pub fn bind(fd: RawFd, addr: &SockAddr) -> Result<()> { ... }
+
+--##############################################################################
+--newpage sysprog
+--sethugefont smblock
+--huge    slices instead of
+
+--huge    pointers & lengths
+
+--##############################################################################
+--newpage sysprog
+--sethugefont smblock
+--beginoutput
+// C
+ssize_t read(int fd, void *buf, size_t count);
+ssize_t write(int fd, const void *buf, size_t count);
+
+---
+// Rust
+pub fn read(fd: RawFd, buf: &mut [u8]) -> Result<usize> { ... }
+pub fn write(fd: RawFd, buf: &[u8]) -> Result<usize> { ... }
+--endoutput
+
+
+--##############################################################################
+--newpage sysprog
+--sethugefont smblock
+--huge    enums  instead  of
+
+--huge    conflating  meanings
+
+--##############################################################################
+--newpage sysprog
+--beginoutput
+// C
+pid_t fork(void);
+// man 2 fork
+On success, the PID of the child process is returned in the parent, and 0 is
+returned in the child. On failure, -1 is returned in the parent, no child
+process is created, and errno is set appropriately.
+
+---
+// Rust
+pub enum ForkResult {
+    Parent {
+        child: pid_t
+    },
+    Child
+}
+pub fn fork() -> Result<ForkResult> { ... }
+--endoutput
 
 --##############################################################################
 --newpage rust-fork
 --beginoutput
-extern crate nix;
-
-use nix::sys::signal::*;
-use nix::unistd::*;
-
-fn main() {
-    match fork().unwrap() {
-        ForkResult::Parent { child } => {
-            sleep(5);
-            kill(child, SIGKILL).unwrap();
-        }
-        ForkResult::Child => {
-            loop {}  // until killed
-        }
+match fork().unwrap() {
+    ForkResult::Parent { child } => {
+        // stuff to do in parent
+    }
+    ForkResult::Child => {
+        // stuff to do in child
     }
 }
 --endoutput
 
 --##############################################################################
---newpage takeaways
+--newpage sysprog
+--sethugefont smblock
+--huge    project status
 
+--##############################################################################
+--newpage sysprog
+--sethugefont smblock
+--huge    warts
+
+--##############################################################################
+--newpage sysprog
+--sethugefont smblock
+--huge    string  passing
+
+--##############################################################################
+--newpage sysprog
+--sethugefont smblock
+--huge    not  consistent  across  all  APIs
+
+--##############################################################################
+--newpage sysprog
+--sethugefont smblock
+--huge    socket
+
+--##############################################################################
+--newpage sysprog
+--sethugefont smblock
+--huge    ioctl
+
+--##############################################################################
+--newpage sysprog
+--sethugefont smblock
+--huge    fcntl
+
+--##############################################################################
+--newpage sysprog
+--sethugefont smblock
+--huge    implementing  an  RFC  process
+--sethugefont wideterm
+
+
+
+
+--huge    https://github.com/nix-rust/rfcs/pull/1/
+
+--##############################################################################
+--newpage sysprog
+--sethugefont smblock
+--huge    join us!
+
+--##############################################################################
+--newpage takeaways
 --sethugefont smblock
 --huge        systems  programming  is  an
 
 --huge        excellent  way  to  get  better
 
 --huge        at  programming
+
+--##############################################################################
+--newpage sysprog
+--sethugefont smblock
+--huge    Rust  makes  systems  programming
+
+--huge    more  fun
+
+
 
 
 
@@ -514,24 +622,43 @@ fn main() {
 --sethugefont wideterm
 --huge    http://j.mp/shell-workshop
 
---##############################################################################
---newpage takeaways-rust
-
---sethugefont smblock
---huge  learn Rust!
-
-
---sethugefont wideterm
---huge https://www.rust-lang.org/
 
 --##############################################################################
 --newpage takeaways-sysprog-rust
 
 --sethugefont smblock
---huge    try systems programming in Rust
+--huge    try  systems  programming
 
---huge    with nix!
+--huge    in  Rust  with  nix!
+
 
 
 --sethugefont wideterm
 --huge     https://github.com/nix-rust/nix
+
+--##############################################################################
+--newpage contribute
+
+--sethugefont smblock
+--huge    contribute  to  nix!
+
+
+
+
+
+
+
+
+--sethugefont wideterm
+--huge     https://github.com/nix-rust/nix
+
+--##############################################################################
+--newpage sysprog
+--sethugefont smblock
+--huge    Thanks for listening!
+
+
+
+
+
+--huge                                  @kamalmarhubi
