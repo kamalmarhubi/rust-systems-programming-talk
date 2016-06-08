@@ -3,30 +3,32 @@
 --bgcolor white
 --fgcolor black
 --sethugefont smblock
---huge    Systems   programming   in   Rust!
+--huge    Systems   programming
+
+--huge    in   Rust!
 
 
 
 
 --sethugefont wideterm
---huge                                                        Kamal   Marhubi
+--huge                                               Kamal   Marhubi
 
 
 --##############################################################################
 --newpage outline
 --sethugefont wideterm
---huge                      outline
+--huge                  outline
 
 ---
-                  * how I got started
+              * how I got started
 ---
-                  * what is systems programming
+              * what is systems programming
 ---
-                  * how Rust and nix make systems programming easier
+              * how Rust and nix make systems programming easier
 ---
-                  * how you can get started
+              * how you can get started
 ---
-                  * how you can help!
+              * how you can help!
 
 --##############################################################################
 --newpage rc
@@ -60,9 +62,9 @@
 --##############################################################################
 --newpage shell
 --sethugefont smblock
+--huge    I  built  a  basic  shell
 
-
---huge    I  built  a  basic  shell ( like  bash)
+--huge    ( like  bash)
 
 --huge    from  scratch
 
@@ -79,10 +81,10 @@ $ ./lsaddr
 
 --##############################################################################
 --newpage ipc
-
-
 --sethugefont smblock
---huge    interprocess communication
+--huge    interprocess
+
+--huge    communication
 
 --huge    benchmarks
 
@@ -111,7 +113,9 @@ ARGS:
 --##############################################################################
 --newpage sysprog
 --sethugefont smblock
---huge    what  is  systems  programming ?
+--huge    what  is  systems
+
+--huge    programming ?
 
 --##############################################################################
 --newpage kernel
@@ -131,14 +135,14 @@ ARGS:
 --newpage syscall-ex
 
 --sethugefont wideterm
---huge                      some  system  calls
+--huge                  some  system  calls
 
 ---
-                  * file operations: open, read, write
+              * file operations: open, read, write
 ---
-                  * processes: fork, exec, kill
+              * processes: fork, exec, kill
 ---
-                  * networking: socket, connect, listen, accept
+              * networking: socket, connect, listen, accept
 
 --##############################################################################
 --newpage syscalls
@@ -150,9 +154,9 @@ ARGS:
 --##############################################################################
 --newpage layers
 --sethugefont smblock
+--huge    layers  between
 
-
---huge    layers  between  the  kernel
+--huge    the  kernel
 
 --huge    and  code  you  write
 
@@ -165,28 +169,19 @@ ARGS:
 
 --##############################################################################
 --newpage libc
-
-
 --sethugefont smblock
 --huge    wraps  up  system  calls
 
---huge    so  you  can  call  them  from  C
+--huge    so  you  can  call  them
+
+--huge    from  C
 
 --##############################################################################
 --newpage stdlib
 --sethugefont smblock
 
 
---huge    standard library
-
---##############################################################################
---newpage std-idioms
---sethugefont smblock
-
---huge    provides  appropriate  interface
-
---huge    for  the  language
-
+--huge    standard  library
 --##############################################################################
 --newpage std-abstractions
 --sethugefont smblock
@@ -194,6 +189,16 @@ ARGS:
 --huge    provides  abstractions
 
 --huge    over  OS  concepts
+
+--##############################################################################
+--newpage std-idioms
+--sethugefont smblock
+--huge    provides  idiomatic
+
+--huge    interface  for  the
+
+--huge    language
+
 
 
 --##############################################################################
@@ -271,7 +276,7 @@ ARGS:
 --sethugefont smblock
 --huge    a  *very*  thin  wrapper
 
---huge    to  make libc  more  Rusty
+--huge    to  make  libc  more  Rusty
 
 --##############################################################################
 --newpage dia
@@ -326,6 +331,7 @@ ARGS:
 --newpage sysprog
 --sethugefont smblock
 --huge    errors  via  Result
+
 --huge    instead  of  errno
 
 --##############################################################################
@@ -348,13 +354,16 @@ pub enum Result<T, E> {
 --##############################################################################
 --newpage sysprog
 --sethugefont smblock
---huge    return  complex  types  instead  of
+--huge    return  complex  types
 
---huge    initializing  by  pointer
+--huge    instead  of  initializing
+
+--huge    pointer
 
 --##############################################################################
 --newpage sysprog
 --beginoutput
+// C
 int pipe_fds[2];
 if (pipe(pipe_fds)) {
     return -1;
@@ -365,6 +374,7 @@ if (pipe(pipe_fds)) {
 --##############################################################################
 --newpage sysprog
 --beginoutput
+// Rust
 let (rd, wr) = try!(pipe());
 --endoutput
 
@@ -372,7 +382,9 @@ let (rd, wr) = try!(pipe());
 --##############################################################################
 --newpage sysprog
 --sethugefont smblock
---huge    flag  arguments  as  bitflags
+--huge    flag  arguments  as
+
+--huge    bitflags
 
 
 --##############################################################################
@@ -383,9 +395,14 @@ let (rd, wr) = try!(pipe());
 #define O_WRONLY 1
 #define O_RDWR   2
 // ...
+
 int open(const char *pathname, int flags);
 int open(const char *pathname, int flags, mode_t mode);
----
+--endoutput
+
+--##############################################################################
+--newpage sysprog
+--beginoutput
 // Rust
 bitflags!(
     flags OFlag: c_int {
@@ -395,6 +412,7 @@ bitflags!(
         // ...
     }
 );
+
 pub fn open<P: ?Sized + NixPath>(path: &P,
                                  oflag: OFlag,
                                  mode: Mode) -> Result<RawFd> { ... }
@@ -404,7 +422,9 @@ pub fn open<P: ?Sized + NixPath>(path: &P,
 --##############################################################################
 --newpage sysprog
 --sethugefont smblock
---huge    logical  enums  are  actual  enums
+--huge    logical  enums  are
+
+--huge    actual  enums
 
 --##############################################################################
 --newpage sysprog
@@ -415,9 +435,14 @@ pub fn open<P: ?Sized + NixPath>(path: &P,
 #define SIGINT  2
 #define SIGQUIT 3
 // ...
-int kill(pid_t pid, int sig);
 
----
+int kill(pid_t pid, int sig);
+--endoutput
+
+--##############################################################################
+--newpage sysprog
+--sethugefont smblock
+--beginoutput
 // Rust
 pub enum Signal {
     SIGHUP = libc::SIGHUP,
@@ -441,8 +466,9 @@ pub fn kill(pid: libc::pid_t, signal: Signal) -> Result<()> { ... }
 --beginoutput
 // C
 int chown(const char *pathname, uid_t owner, gid_t group);
-// man 2 chown
-If the owner or group is specified as -1, then that ID is not changed.
+// man 2 chown:
+// If the owner or group is specified as -1, then that ID is not
+// changed.
 
 ---
 // Rust
@@ -455,23 +481,28 @@ pub fn chown<P: ?Sized + NixPath>(path: &P,
 --##############################################################################
 --newpage sysprog
 --sethugefont smblock
---huge    references  instead  of  pointers
+--huge    references  instead  of
+
+--huge    pointers
 
 --##############################################################################
 --newpage sysprog
+--beginoutput
 // C
 int bind(int sockfd, const struct sockaddr *addr,
          socklen_t addrlen);
+
 ---
 // Rust
 pub fn bind(fd: RawFd, addr: &SockAddr) -> Result<()> { ... }
+--endoutput
 
 --##############################################################################
 --newpage sysprog
 --sethugefont smblock
---huge    slices instead of
+--huge    slices  instead  of
 
---huge    pointers & lengths
+--huge    pointers  &  lengths
 
 --##############################################################################
 --newpage sysprog
@@ -500,12 +531,17 @@ pub fn write(fd: RawFd, buf: &[u8]) -> Result<usize> { ... }
 --beginoutput
 // C
 pid_t fork(void);
-// man 2 fork
-On success, the PID of the child process is returned in the parent, and 0 is
-returned in the child. On failure, -1 is returned in the parent, no child
-process is created, and errno is set appropriately.
+// man 2 fork:
+// On success, the PID of the child process is returned in the
+// parent, and 0 is returned in the child. On failure, -1 is
+// returned in the parent, no child process is created, and errno is
+// set appropriately.
+--endoutput
 
----
+
+--##############################################################################
+--newpage sysprog
+--beginoutput
 // Rust
 pub enum ForkResult {
     Parent {
@@ -532,7 +568,7 @@ match fork().unwrap() {
 --##############################################################################
 --newpage sysprog
 --sethugefont smblock
---huge    project status
+--huge    project  status
 
 --##############################################################################
 --newpage sysprog
@@ -547,7 +583,9 @@ match fork().unwrap() {
 --##############################################################################
 --newpage sysprog
 --sethugefont smblock
---huge    not  consistent  across  all  APIs
+--huge    not  consistent  across
+
+--huge    all  APIs
 
 --##############################################################################
 --newpage sysprog
@@ -567,38 +605,28 @@ match fork().unwrap() {
 --##############################################################################
 --newpage sysprog
 --sethugefont smblock
---huge    implementing  an  RFC  process
---sethugefont wideterm
+--huge    implementing  an  RFC
+
+--huge    process
 
 
-
-
---huge    https://github.com/nix-rust/rfcs/pull/1/
-
---##############################################################################
---newpage sysprog
---sethugefont smblock
---huge    join us!
+                        https://github.com/nix-rust/rfcs/pull/1/
 
 --##############################################################################
 --newpage takeaways
 --sethugefont smblock
---huge        systems  programming  is  an
+--huge    systems  programming  is
 
---huge        excellent  way  to  get  better
+--huge    an  excellent  way  to  get
 
---huge        at  programming
+--huge    better  at  programming
 
 --##############################################################################
 --newpage sysprog
 --sethugefont smblock
---huge    Rust  makes  systems  programming
+--huge    Rust  makes  systems
 
---huge    more  fun
-
-
-
-
+--huge    programming  more  fun
 
 --##############################################################################
 --newpage takeaways
@@ -612,15 +640,14 @@ match fork().unwrap() {
 
 --##############################################################################
 --newpage takeaway-sysprog
-
 --sethugefont smblock
---huge    try some systems programming:
+--huge    try some systems
+
+--huge    programming:
 
 --huge    write a shell!
 
-
---sethugefont wideterm
---huge    http://j.mp/shell-workshop
+   http://j.mp/shell-workshop
 
 
 --##############################################################################
@@ -633,8 +660,7 @@ match fork().unwrap() {
 
 
 
---sethugefont wideterm
---huge     https://github.com/nix-rust/nix
+   https://github.com/nix-rust/nix
 
 --##############################################################################
 --newpage contribute
@@ -649,8 +675,7 @@ match fork().unwrap() {
 
 
 
---sethugefont wideterm
---huge     https://github.com/nix-rust/nix
+   https://github.com/nix-rust/nix
 
 --##############################################################################
 --newpage sysprog
